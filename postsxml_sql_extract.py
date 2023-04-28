@@ -17,7 +17,7 @@ select_from_regex = r'&lt;code&gt;SELECT\s.*?FROM\s.*?&lt;/code&gt;'
 counter = 0
 
 with open(path, 'r', encoding='utf-8') as f:
-    with open('queries.txt', 'w', encoding='utf-8') as outfile:  # opening a new file to write output
+    with open('sqlcommands.txt', 'w', encoding='utf-8') as outfile:  # opening a new file to write output
         for line in f:
             try:
                 matches = re.findall(select_from_regex, line)
