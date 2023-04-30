@@ -12,6 +12,10 @@ The creation of `sqlcommands.txt` is a mandatory step for any subsequent SQL Sel
 
 ### Percent of Window Function per Thousand Queries
 
+This analysis compute two statistics:
+1. The number of window function per each chunk of thousand queries. 
+2. The number of window function types.
+
 ```bash
 python sql_WF_analysis.py sqlcommands.txt
 ``` 
