@@ -19,3 +19,6 @@ This analysis compute two statistics:
 ```bash
 python sql_WF_analysis.py sqlcommands.txt
 ``` 
+![The number of window function per thousand queries](img/Figure1.png)
+
+![Window function types](img/Figure2.png)
