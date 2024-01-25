@@ -32,7 +32,8 @@ window_functions = {
     'SUM': r'\bSUM\s*\(\s*.+?\s*\)\s*OVER\s*\(',
     'COUNT': r'\bCOUNT\s*\(\s*.+?\s*\)\s*OVER\s*\(',
     'FIRST_VALUE': r'\bFIRST_VALUE\s*\(\s*.+?\s*\)\s*OVER\s*\(',
-    'LAST_VALUE': r'\bLAST_VALUE\s*\(\s*.+?\s*\)\s*OVER\s*\('
+    'LAST_VALUE': r'\bLAST_VALUE\s*\(\s*.+?\s*\)\s*OVER\s*\(',
+    'NTILE': r'\bNTILE\s*\(\s*.+?\s*\)\s*OVER\s*\('
 }
 
 y_all = []
@@ -78,7 +79,7 @@ x = [i for i in range(0, len(y_all))]
 y_all = [y_all[i]/10 for i in range(0, len(y_all))]
 plt.scatter(x, y_all, s=10)
 # Add labels and title
-plt.xlabel('Queries')
+plt.xlabel('# Queries in thousands')
 plt.ylabel('Queries with window function [%]')
 # plt.title('X-Y Plot')
 
@@ -107,6 +108,8 @@ plt.bar([func for func in window_functions], [sum(y[func]) for func in window_fu
 # plt.title('Occurence of each Window Function')
 plt.xlabel('Window Function')
 plt.ylabel('Occurences')
+# Rotate x-axis labels
+plt.xticks(rotation=45)
 
 # Display the plot
 plt.show()
