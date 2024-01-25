@@ -5,6 +5,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from datetime import datetime
 
 if len(sys.argv) < 2:
 	print("Please provide a path to a queries.txt file")
@@ -37,6 +38,7 @@ window_functions = {
 }
 
 y_all = []
+x_all = []
 wf_counter = 0
 
 y = {func: [] for func in window_functions}
@@ -44,72 +46,113 @@ counter = 0
 wf_counters = {func: 0 for func in window_functions}
 wf_colors = {}
 
-for func in window_functions:
-    c = [random.randint(0, 4) / 5,
-        random.randint(0, 4) / 5,
-        random.randint(0, 4) / 5]
-    r = random.randint(0,2)
-    c[r] = min(c[r] * 2, 1.0)
-    wf_colors[func] = (c[0], c[1], c[2])
+# for func in window_functions:
+    # c = [random.randint(0, 4) / 5,
+        # random.randint(0, 4) / 5,
+        # random.randint(0, 4) / 5]
+    # r = random.randint(0,2)
+    # c[r] = min(c[r] * 2, 1.0)
+    # wf_colors[func] = (c[0], c[1], c[2])
 
+
+for idx, func in enumerate(window_functions):
+    if idx in (0, 1, 2):  # First three functions
+        color = (0.8, 0.2, 0.2)  # Red shade
+    elif idx in (3, 4):  # Fourth and fifth functions
+        color = (0.2, 0.8, 0.2)  # Green shade
+    elif idx in (5, 6, 7, 8, 9):  # Rest of the functions
+        color = (0.2, 0.2, 0.8)  # Blue shade
+    else:
+        color = (148/255, 0/255, 211/255)  # Blue shade
+    wf_colors[func] = color
+
+prev_date = '2008-08'
+counter = 0
+x_values = []
+x_year_month = []
 with open(path, 'r', encoding='utf-8') as f:
     for line in f:
         counter += 1
+        actual_date = line[:7]
+
         if re.search(regex, line, re.IGNORECASE):
             wf_counter += 1
             for func, func_regex in window_functions.items():
                 if re.search(func_regex, line, re.IGNORECASE):
                     wf_counters[func] += 1
 
-        if (counter % 1000) == 0:
-            y_all.append(wf_counter)
-            wf_counter = 0
-            for func in window_functions:
-                y[func].append(wf_counters[func])
-                wf_counters[func] = 0
+        if actual_date != prev_date:
+            try:
+                year = actual_date[:4]
+                month = actual_date[5:7]
+                if (int(year) >= 2008 and int(year) <= 2019) and (int(month) >= 1 and int(month) <= 12):
+                    y_all.append(wf_counter)
+                    x_all.append(counter)
+                    x_year_month.append(datetime.strptime(actual_date, "%Y-%m"))
+                    wf_counter = 0
+                    counter = 0
+                    for func in window_functions:
+                        y[func].append(wf_counters[func])
+                        wf_counters[func] = 0
+            except ValueError:
+                continue
 
-# Print the number of statements with window functions
+        prev_date = actual_date
+
 print(sum(y_all))
 # Print the number of statements
 print(counter)
 
 
 
-x = [i for i in range(0, len(y_all))]
-y_all = [y_all[i]/10 for i in range(0, len(y_all))]
-plt.scatter(x, y_all, s=10)
+x_percent = []
+y_percent = []
+for i in range(0, len(y_all)):
+    if float(y_all[i])/x_all[i]*100.0 > 20: # there is one outlier we do not want to plot
+        continue
+    y_percent.append(float(y_all[i])/x_all[i]*100.0)
+    x_percent.append(x_year_month[i])
+
+
+plt.scatter(x_percent, y_percent, s=10)
 # Add labels and title
-plt.xlabel('# Queries in thousands')
-plt.ylabel('Queries with window function [%]')
-# plt.title('X-Y Plot')
+plt.xlabel('Time [Year-Month]')
+plt.ylabel('Queries with WFE [%]')
 
-# Add trendline
-z = np.polyfit(x, y_all, 2) # 2 represents the degree of the polynomial
+# # Add trendline
+z = np.polyfit(plt.matplotlib.dates.date2num(x_percent), y_percent, 2) # 2 represents the degree of the polynomial
 p = np.poly1d(z)
-plt.plot(x,p(x),"r--",  color='blue')
+plt.plot(x_percent,p(plt.matplotlib.dates.date2num(x_percent)),"r--",  color='blue')
 
-for func in window_functions:
-    z = [y[func][i]/10 for i in range(0, len(y[func]))]
-    #plt.scatter(x, z, s=10, color=[wf_colors[func] for i in range(0, len(z))])
-    w = np.polyfit(x, z, 2) # 2 represents the degree of the polynomial
-    p = np.poly1d(w)
-    plt.plot(x,p(x),"r--",color=wf_colors[func])
+plt.xticks(rotation=45, ha='right')
+plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m'))
 
 plt.legend(['All', 'Trendline All'] + [func for func in window_functions])
 
-# Show plot
+# for func in window_functions:
+#     z = [y[func][i]/10 for i in range(0, len(y[func]))]
+#     #plt.scatter(x, z, s=10, color=[wf_colors[func] for i in range(0, len(z))])
+#     w = np.polyfit(x, z, 2) # 2 represents the degree of the polynomial
+#     p = np.poly1d(w)
+#     plt.plot(x,p(x),"r--",color=wf_colors[func])
+#
+# plt.legend(['All', 'Trendline All'] + [func for func in window_functions])
+
+plt.subplots_adjust(left=0.1, right=0.97, top=0.94, bottom=0.2)  # Adjust the values as per your requirements
 plt.show()
 
 
 # Create the bar plot
 plt.bar([func for func in window_functions], [sum(y[func]) for func in window_functions],color=[wf_colors[func] for func in window_functions])
+plt.xticks(rotation=45, ha='right', fontsize='large')
+plt.yticks(fontsize='large')
+plt.subplots_adjust(left=0.16, right=0.97, top=0.94, bottom=0.28)  # Adjust the values as per your requirements
 
 # Set the title and axis labels
 # plt.title('Occurence of each Window Function')
-plt.xlabel('Window Function')
-plt.ylabel('Occurences')
-# Rotate x-axis labels
-plt.xticks(rotation=45)
+plt.xlabel('Window Function', fontsize='large')
+plt.ylabel('Occurences', fontsize='large')
 
 # Display the plot
 plt.show()
+
